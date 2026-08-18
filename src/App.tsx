@@ -57,6 +57,7 @@ function App() {
   const [bet, setBet] = useState('')
 
   useEffect(() => {
+  const authenticateTelegramUser = async () => {
     const webApp = window.Telegram?.WebApp
 
     if (!webApp) {
@@ -69,17 +70,44 @@ function App() {
     webApp.ready()
     webApp.expand()
 
-    const user = webApp.initDataUnsafe.user
+    try {
+      const response = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          initData: webApp.initData,
+        }),
+      })
 
-    if (user) {
-      setTelegramUser(user)
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        console.error(
+          'Telegram authentication failed:',
+          data,
+        )
+
+        return
+      }
 
       console.log(
-        'Telegram user:',
-        user,
+        'Telegram authentication successful:',
+        data.user,
+      )
+
+      setTelegramUser(data.user)
+    } catch (error) {
+      console.error(
+        'Authentication request failed:',
+        error,
       )
     }
-  }, [])
+  }
+
+  authenticateTelegramUser()
+}, [])
 
   const numericBet = Number(bet)
 
