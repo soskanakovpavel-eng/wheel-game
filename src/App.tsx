@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 type Lobby = {
@@ -46,15 +46,48 @@ function formatMoney(value: number) {
 }
 
 function App() {
+  const [telegramUser, setTelegramUser] =
+    useState<TelegramUser | null>(null)
+
   const [balance] = useState(100000)
-  const [selectedLobby, setSelectedLobby] = useState<Lobby | null>(null)
+
+  const [selectedLobby, setSelectedLobby] =
+    useState<Lobby | null>(null)
+
   const [bet, setBet] = useState('')
+
+  useEffect(() => {
+    const webApp = window.Telegram?.WebApp
+
+    if (!webApp) {
+      console.log(
+        'Wheel Game открыт не внутри Telegram',
+      )
+      return
+    }
+
+    webApp.ready()
+    webApp.expand()
+
+    const user = webApp.initDataUnsafe.user
+
+    if (user) {
+      setTelegramUser(user)
+
+      console.log(
+        'Telegram user:',
+        user,
+      )
+    }
+  }, [])
 
   const numericBet = Number(bet)
 
   const chance =
     selectedLobby && numericBet >= selectedLobby.min
-      ? (numericBet / (selectedLobby.bank + numericBet)) * 100
+      ? (numericBet /
+          (selectedLobby.bank + numericBet)) *
+        100
       : 0
 
   const handleJoin = () => {
@@ -69,6 +102,7 @@ function App() {
           selectedLobby.min,
         )} до ${formatMoney(selectedLobby.max)}`,
       )
+
       return
     }
 
@@ -88,29 +122,67 @@ function App() {
     <div className="app">
       <header className="header">
         <div className="logo">
-          <span className="logo-wheel">🎡</span>
+          <span className="logo-wheel">
+            🎡
+          </span>
+
           <div>
-            <div className="logo-title">WHEEL GAME</div>
+            <div className="logo-title">
+              WHEEL GAME
+            </div>
+
             <div className="logo-subtitle">
               БОЛЬШОЕ КОЛЕСО
             </div>
           </div>
         </div>
 
-        <div className="balance">
-          <span>💰</span>
-          <div>
-            <small>БАЛАНС</small>
-            <strong>{formatMoney(balance)}</strong>
+        <div className="header-right">
+          {telegramUser && (
+            <div className="telegram-user">
+              <span>👤</span>
+
+              <div>
+                <small>
+                  ИГРОК
+                </small>
+
+                <strong>
+                  {telegramUser.first_name}
+
+                  {telegramUser.last_name
+                    ? ` ${telegramUser.last_name}`
+                    : ''}
+                </strong>
+              </div>
+            </div>
+          )}
+
+          <div className="balance">
+            <span>💰</span>
+
+            <div>
+              <small>
+                БАЛАНС
+              </small>
+
+              <strong>
+                {formatMoney(balance)}
+              </strong>
+            </div>
           </div>
         </div>
       </header>
 
       <main>
         <section className="hero">
-          <div className="hero-wheel">🎡</div>
+          <div className="hero-wheel">
+            🎡
+          </div>
 
-          <h1>БОЛЬШОЕ КОЛЕСО</h1>
+          <h1>
+            БОЛЬШОЕ КОЛЕСО
+          </h1>
 
           <p>
             Выбери лобби и определи свою ставку
@@ -133,16 +205,20 @@ function App() {
                     {lobby.id === 1 && '🟢 '}
                     {lobby.id === 2 && '🔵 '}
                     {lobby.id === 3 && '🔴 '}
+
                     {lobby.title}
                   </span>
 
                   <span className="lobby-range">
-                    {formatMoney(lobby.min)} —{' '}
+                    {formatMoney(lobby.min)}
+                    {' — '}
                     {formatMoney(lobby.max)}
                   </span>
                 </div>
 
-                <span className="arrow">›</span>
+                <span className="arrow">
+                  ›
+                </span>
               </div>
 
               <div className="lobby-info">
@@ -159,10 +235,33 @@ function App() {
         </section>
 
         <section className="menu">
-          <button>🎰<span>Джекпоты</span></button>
-          <button>🎟<span>Билеты</span></button>
-          <button>👤<span>Профиль</span></button>
-          <button>📜<span>История</span></button>
+          <button>
+            🎰
+            <span>
+              Джекпоты
+            </span>
+          </button>
+
+          <button>
+            🎟
+            <span>
+              Билеты
+            </span>
+          </button>
+
+          <button>
+            👤
+            <span>
+              Профиль
+            </span>
+          </button>
+
+          <button>
+            📜
+            <span>
+              История
+            </span>
+          </button>
         </section>
       </main>
 
@@ -171,7 +270,9 @@ function App() {
           <div className="modal">
             <button
               className="close"
-              onClick={() => setSelectedLobby(null)}
+              onClick={() =>
+                setSelectedLobby(null)
+              }
             >
               ×
             </button>
@@ -182,30 +283,43 @@ function App() {
               {selectedLobby.id === 3 && '🔴'}
             </div>
 
-            <h2>{selectedLobby.title}</h2>
+            <h2>
+              {selectedLobby.title}
+            </h2>
 
             <p className="modal-range">
-              {formatMoney(selectedLobby.min)} —{' '}
+              {formatMoney(selectedLobby.min)}
+              {' — '}
               {formatMoney(selectedLobby.max)}
             </p>
 
             <div className="modal-stats">
               <div>
-                <small>БАНК</small>
+                <small>
+                  БАНК
+                </small>
+
                 <strong>
-                  {formatMoney(selectedLobby.bank)}
+                  {formatMoney(
+                    selectedLobby.bank,
+                  )}
                 </strong>
               </div>
 
               <div>
-                <small>ИГРОКОВ</small>
+                <small>
+                  ИГРОКОВ
+                </small>
+
                 <strong>
                   {selectedLobby.players}
                 </strong>
               </div>
             </div>
 
-            <label>ТВОЯ СТАВКА</label>
+            <label>
+              ТВОЯ СТАВКА
+            </label>
 
             <input
               type="number"
@@ -213,21 +327,32 @@ function App() {
               min={selectedLobby.min}
               max={selectedLobby.max}
               placeholder={`${selectedLobby.min}`}
-              onChange={(e) => setBet(e.target.value)}
+              onChange={(e) =>
+                setBet(e.target.value)
+              }
             />
 
             <div className="limits">
               <span>
-                Мин: {formatMoney(selectedLobby.min)}
+                Мин:{' '}
+                {formatMoney(
+                  selectedLobby.min,
+                )}
               </span>
 
               <span>
-                Макс: {formatMoney(selectedLobby.max)}
+                Макс:{' '}
+                {formatMoney(
+                  selectedLobby.max,
+                )}
               </span>
             </div>
 
             <div className="chance">
-              <span>Твой шанс</span>
+              <span>
+                Твой шанс
+              </span>
+
               <strong>
                 {chance > 0
                   ? `${chance.toFixed(2)}%`
